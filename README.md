@@ -200,13 +200,13 @@ Options
     
 ### Using the test scripts
 
-There are three test scripts: `testparopts`, `testsetup` and `testfinal`. `testparopts` is standalone, and `testsetup` and `testfinal` are to be used together (in that order).
+There are three test scripts: `paropts-test`, `paropts-test-setup` and `paropts-test-final`. `paropts-test` is standalone, and `paropts-test-setup` and `paropts-test-final` are to be used together (in that order).
 
-`testparopts` both creates the output file (if it doesn't exist already), and sources it. Note that, if you use `paropts` in this way, you will need to remove the output file before running if you want to make any changes. Any arguments passed to `testparopts` will be parsed as intended.
+`paropts-test` both creates the output file (if it doesn't exist already), and sources it. Note that, if you use `paropts` in this way, you will need to remove the output file before running if you want to make any changes. Any arguments passed to `paropts-test` will be parsed as intended.
 
-`testsetup` creates the output file.
+`paropts-test-setup` creates the output file.
 
-`testfinal` utilises the output file created by `testsetup`, so that any arguments/options passed to it will be parsed as intended.
+`paropts-test-final` utilises the output file created by `paropts-test-setup`, so that any arguments/options passed to it will be parsed as intended.
 
 Note: You should run the test scripts as `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
 
