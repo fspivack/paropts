@@ -40,8 +40,7 @@ Note that the sourcing of `paropts` and the usage of `paropts_add`, `paropts_set
     
 ### Function `paropts_add`
 
-Adds options, including a name for the variable where you want the output stored, equivalent alternatives (e.g. a short option and a long option), optional default value, optional required flag (note that default and required are incompatible and will raise an error if used together), an explanation for the generated help function (note that this is optional but STRONGLY recommended if you intend to generate the help function), and an optional argument name to put in the help function.
-
+Adds options, including a name for the variable where you want the output stored.
 **Positional arguments**
 1. The name of the variable in which you want to store the result of the user's call to your program (Required)
 2. A semi-colon separated list of options for your program to handle (Required). If there are more than two equivalent options, those after the second will be ignored
@@ -212,3 +211,11 @@ There are three test scripts: `testparopts`, `testsetup` and `testfinal`. `testp
 Note: You should run the test scripts as `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
 
 See the test files for suggestions on what arguments to call in order to test the argument parsing.
+
+## Licence
+
+This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
+## Contact
+
+For questions or support, including clarification on how to use this program,  please feel free to contact me at spivack.f@gmail.com.

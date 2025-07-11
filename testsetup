@@ -1,8 +1,11 @@
 #!/bin/bash
-
+# Copyright (C) 2025 Francesca Spivack
+# This program is licensed under the GNU General Public License version 3.
+# See the LICENSE file or <https://www.gnu.org/licenses/>.
 
 # Demonstrates setting up the output file, so that it can then be used in other
 # scripts
+
 # Simpler setup to "testparopts" - not using a pre-message, a post-message or a
 # custom usage line
 

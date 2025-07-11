@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# Copyright (C) 2025 Francesca Spivack
+# This program is licensed under the GNU General Public License version 3.
+# See the LICENSE file or <https://www.gnu.org/licenses/>.
 
 # Demonstrates using paropts inside the actual program. For a demonstration of
 # setting up the output file in one script and calling it in another (the actual

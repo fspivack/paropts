@@ -1,9 +1,9 @@
 #!/bin/bash
+# Copyright (C) 2025 Francesca Spivack
+# This program is licensed under the GNU General Public License version 3.
+# See the LICENSE file or <https://www.gnu.org/licenses/>.
 
 # Parse single-dashed and double-dashed options
-
-# Please refrain from putting unescaped double quotes in dafault values of
-# options. todo: test this
 
 # "paropts_setup" is only necessary if using a usage function
 

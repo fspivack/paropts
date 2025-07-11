@@ -1,5 +1,10 @@
 #!/bin/bash
-    
+# Copyright (C) 2025 Francesca Spivack
+# This program is licensed under the GNU General Public License version 3.
+# See the LICENSE file or <https://www.gnu.org/licenses/>.
+
+# Test the output file (output from testsetup, and intended to be run after
+# running testsetup)
 
 # Get directory of this script
 PARENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
