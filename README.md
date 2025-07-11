@@ -24,11 +24,11 @@ E.g.:
 4. Call the function `paropts_finalize`, passing the filename where you want the output to be printed. Note that it's best practice to pass the full filepath of the location you want the output printed. If you do not, then it will be printed relative to the directory where your script is being run from
 E.g.:
 ```bash
-    paropts_finalize "$output_filepath"
+    paropts_finalize "<output_filepath>"
 ```
 5. Source your output file in the script which you want to have access to the options:
 ```bash
-source "$output_filepath"
+source "<output_filepath>"
 ```
 7. Finally, call the function `parse_options` from the output file, passing it the arguments which have been passed to your program:
 ```bash
@@ -36,6 +36,8 @@ parse_options "$@"
 ```
 8. You will now have all your user's arguments in your preferred variables!
 
+Note that the sourcing of `paropts` and the usage of `paropts_add`, `paropts_setup` and `paropts_finalize` can be done from the command line if you don't want to put them in a script.
+    
 ### Function `paropts_add`
 
 Adds options, including a name for the variable where you want the output stored, equivalent alternatives (e.g. a short option and a long option), optional default value, optional required flag (note that default and required are incompatible and will raise an error if used together), an explanation for the generated help function (note that this is optional but STRONGLY recommended if you intend to generate the help function), and an optional argument name to put in the help function.
@@ -44,7 +46,7 @@ Adds options, including a name for the variable where you want the output stored
 1. The name of the variable in which you want to store the result of the user's call to your program (Required)
 2. A semi-colon separated list of options for your program to handle (Required). If there are more than two equivalent options, those after the second will be ignored
     
-**Options:**
+**Options**
 
 Suppose your option is called OPT.
 
@@ -126,6 +128,7 @@ It will also do thorough validity-checking of your user's options.
 - Any invalid options will result in the code exiting with exit code 1, and will also instruct the user to type `<your-command-name> --help`
 - The user putting in an option requiring an argument, and not providing one (or providing a dashed argument which looks like an option) will also result in exiting with an error
 - The function `po_usage` will wrap according to the end user's terminal width
+- Note that, in`po_usage`, the order of the options is determined by the alphabetical order of the **variable names** to store the option in
 
 ## Example
 
@@ -198,7 +201,7 @@ Options
     
 ### Using the test scripts
 
-There are three test scripts: `testparopts`, `testsetup` and `testfinal`.
+There are three test scripts: `testparopts`, `testsetup` and `testfinal`. `testparopts` is standalone, and `testsetup` and `testfinal` are to be used together (in that order).
 
 `testparopts` both creates the output file (if it doesn't exist already), and sources it. Note that, if you use `paropts` in this way, you will need to remove the output file before running if you want to make any changes. Any arguments passed to `testparopts` will be parsed as intended.
 
@@ -206,6 +209,6 @@ There are three test scripts: `testparopts`, `testsetup` and `testfinal`.
 
 `testfinal` utilises the output file created by `testsetup`, so that any arguments/options passed to it will be parsed as intended.
 
-You should run the test scripts as: `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
+Note: You should run the test scripts as `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
 
 See the test files for suggestions on what arguments to call in order to test the argument parsing.
