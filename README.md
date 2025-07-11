@@ -213,6 +213,24 @@ Note: You should run the test scripts as `./path/to/<testfile>` (plus any argume
 
 See the test files for suggestions on what arguments to call in order to test the argument parsing.
 
+## Including This in Your Own Code
+
+You may want to include this program in your own codebase, so that you and your collaborators can build your program directly from the repository. There are two main ways to do this:
+
+1. **Simply copy the script `paropts`** into your repository.  
+   This is the simplest option, and is recommended if the script isn't likely to change significantly for your use.
+
+2. **Include this repository as a Git subtree.**  
+   To do this, run the following command in your terminal (this only needs to be done once):
+```bash
+git subtree add --prefix=tools/paropts https://github.com/fspivack/paropts.git main --squash
+```
+Later, if you want to pull the latest version of the script from this repository:
+```bash
+git subtree pull --prefix=tools/paropts https://github.com/fspivack/paropts.git main --squash
+```
+Note: Using a subtree keeps everything self-contained — no special steps are needed by other collaborators when cloning your repo.
+
 ## Licence
 
 This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
