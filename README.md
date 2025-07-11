@@ -195,3 +195,17 @@ Options
                               'ARG2'. This is a long explanation
 
 ```
+    
+### Using the test scripts
+
+There are three test scripts: `testparopts`, `testsetup` and `testfinal`.
+
+`testparopts` both creates the output file (if it doesn't exist already), and sources it. Note that, if you use `paropts` in this way, you will need to remove the output file before running if you want to make any changes. Any arguments passed to `testparopts` will be parsed as intended.
+
+`testsetup` creates the output file.
+
+`testfinal` utilises the output file created by `testsetup`, so that any arguments/options passed to it will be parsed as intended.
+
+You should run the test scripts as: `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
+
+See the test files for suggestions on what arguments to call in order to test the argument parsing.
