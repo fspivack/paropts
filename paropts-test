@@ -45,7 +45,7 @@ done
 
 # Try calling the script with different arguments
 # E.g.
-# testparopts TEST --ddd "Required option"
-# testparopts -a Hello -b --ddd Test "This is positional arg"
-# testparopts --ddd Test "This is positional arg" -- "Another positional"
-# testparopts --help
+# paropts-test TEST --ddd "Required option"
+# paropts-test -a Hello -b -d Test "This is positional arg"
+# paropts-test -d Test "This is positional arg" -- "Another positional"
+# paropts-test --help
