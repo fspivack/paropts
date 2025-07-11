@@ -41,6 +41,7 @@ Note that the sourcing of `paropts` and the usage of `paropts_add`, `paropts_set
 ### Function `paropts_add`
 
 Adds options, including a name for the variable where you want the output stored.
+
 **Positional arguments**
 1. The name of the variable in which you want to store the result of the user's call to your program (Required)
 2. A semi-colon separated list of options for your program to handle (Required). If there are more than two equivalent options, those after the second will be ignored
