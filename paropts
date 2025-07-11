@@ -1,0 +1,510 @@
+#!/bin/bash
+
+# Parse single-dashed and double-dashed options
+
+# Please refrain from putting unescaped double quotes in dafault values of
+# options. todo: test this
+
+# "paropts_setup" is only necessary if using a usage function
+
+# This is very messy, partly due to the fact that it was orginally intended for
+# a very different method of input. However, both the interace for the user and
+# the interface for *their* user is neat. I may refactor this a bit, but the
+# interface will stay the same
+
+# todo: Sanitise options etc.??? If so, it should mostly affect list of options
+# todo: Potentially check use of -n/--name-arg against whether the option
+# actually takes an argument
+
+_checkargs() {
+    found=false
+    if [[ -z "$2" ]]; then
+        printf "ERROR: Option %s requires an argument\n" "$1"
+        exit 1
+    elif [[ "$2" =~ ^- ]]; then
+        printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2"
+        exit 1
+    else
+        found=true
+    fi
+}
+
+set_usage_function() {
+    # $1 is command name
+    # $2  description of cmd (optional, but recommended)
+    # $3 is usage line (optional)
+    # $4 is pre-message (optional)
+    # $5 is post-message (optional)
+    if [[ -n "$3" ]]; then
+        usage_line="$3"
+    else
+        usage_line="USAGE: $1 [OPTIONS]"
+    fi
+    simple_usage_func="
+
+po_usage() {
+
+    # Get terminal width
+    terminal=/dev/pts/1
+    columns=\$(stty -a <\"\$terminal\" | grep -Po '(?<=columns )\d+')
+    padding=$padding
+
+    printf \"$4\\n\"
+    printf \"$usage_line\\n\\n\"
+    printf \"$2\\n\\n\"
+    printf \"Options\\n\"
+$usage_content
+    printf \"$5\\n\"
+    # Clean exit
+    exit 0
+}
+"
+    printf "%s" "$simple_usage_func" >> "$options_filename"
+}
+
+_paropts_show() {
+    # The unescaped "$1" sets out each case
+    # $2 is the defaults
+    # $3 is the end code block(s)
+    # $4 is whether the user wants a usage function, and therefore a help option
+    ## $5 is an optional command name - shoud be set if usage is wanted
+    opts_list="#!/bin/bash
+
+parse_options() {
+    # List to contain positional arguments (not values for options)
+    positional=()
+
+    # Set defaults - they only get overwriten if the user supplies the args
+$2
+    # Options
+    while [[ \$# -gt 0 ]]; do  # loop through all arguments
+        if [[ \"\$1\" =~ ^- ]]; then  # sort those starting with a dash
+            case \"\$1\" in
+$1"
+    if [[ "$4" == "true" ]]; then
+        opts_list+="
+                --help)
+                    po_usage
+                    break
+                    ;;
+"
+    fi
+    opts_list+="
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    printf \"ERROR: Incorrect option %s\\\n\" \"\$1\"
+"
+    if [[ "$4" == "true" ]]; then
+        opts_list+="
+                    printf \"Type '$5 --help' for usage\n\"
+"
+    fi
+    opts_list+="
+                    exit 1
+                    ;;
+            esac
+        else
+            positional+=(\"\$1\")
+            shift
+        fi
+    done
+    while [[ \$# -gt 0 ]]; do
+        # Deal with positional arguments after "--"
+        positional+=(\"\$1\")
+        shift
+    done
+$3
+}
+"
+    printf "%s" "$opts_list" > "$options_filename"
+}
+
+paropts_add_all() {
+    # Note: Options will be sorted alphabetically according to their names, not
+    # the actual options
+
+    # Note that we're creating/updating both "options_content" and
+    # "usage_content" simultaneously, among other vars
+
+    # Clear variables in case used before
+    options_content=""
+    usage_content=""
+    description=""
+    defaults=""
+    end=""
+    
+    declare -n data=$1
+
+    # Sort keys, because associative array doesn't preserve order
+    keys=()
+    for key in "${!data[@]}"; do
+        keys+=("$key")
+    done
+    IFS=$'\n' sorted_keys=($(sort <<<"${keys[*]}"))
+    unset IFS
+        
+    for opt_name in "${sorted_keys[@]}"; do  # loop through keys in assoc array
+
+        # If option doesn't start and end '_' ...
+        if [[ ! "$opt_name" =~ ^_.*_$ ]]; then
+            if [[ "${data[_has_usage_]}" == true ]]; then
+                # If data includes description for this option...
+                if [[ -v data["_${opt_name}_explanation_"] ]]; then
+                    opt_exp="${data["_${opt_name}_explanation_"]}"
+                else
+                    printf "WARNING: No explanation provided for %s" "$opt_name
+"
+                    opt_exp=""
+                fi
+            fi
+            opt_vals=(${data[$opt_name]}) # remember we split this before
+            # We need the following array for the message about required opts            
+            dashed_opt_vals=()
+            opt_val1="${opt_vals[0]}"
+            unset short
+            unset long
+            if [ -v opt_vals[1] ]; then
+                comma="," # for usage function - if 2 opts, need a comma between
+                opt_val2="${opt_vals[1]}"
+                # We discard further options, assuming only two
+                # Now we get the shorter and longer option names, adding two
+                # dashes to those which are longer than one character, and one
+                # dash to one which is only one character
+                if [[ "${#opt_val1}" < "${#opt_val2}" ]]; then
+                    if [[ "${#opt_val1}" -eq 1 ]]; then
+                        short="-${opt_val1}"
+                    else
+                        short="--${opt_val1}"
+                    fi
+                    long="--${opt_val2}"
+                else
+                    if [[ "${#opt_val2}" -eq 1 ]]; then
+                        short="-${opt_val2}"
+                    else
+                        short="--${opt_val2}"
+                    fi
+                    long="--${opt_val1}"
+                fi
+            else
+                comma=""
+                if [[ "${#opt_val1}" -eq 1 ]]; then
+                    short="-${opt_val1}"
+                else
+                    long="--${opt_val1}"
+                fi
+            fi
+            # Get the name of the argument if applicable
+            if [[ -v data["_${opt_name}_name_arg_"] ]]; then
+                argname="=${data[_${opt_name}_name_arg_]}"
+            else
+                argname=""
+            fi
+            shortlen=6
+            longlen=20
+            (( reserved = shortlen + longlen ))
+            # The "+ 4" is becasue of the added space characters in the printf
+            (( padding = reserved + 4 ))
+            optlength="${#long}"
+            arglength="${#argname}"
+            (( numchars = optlength + shortlen + arglength ))
+            usage_content+="
+    wrapped_desc=\$(echo \"$opt_exp\" | fold -s -w \$((columns - padding)) | sed \"2,\\\$s/^/\$(printf '%*s' \$padding)/\")
+"
+            if [[ "$numchars" -gt "$reserved" ]]; then
+                # Too long — print on one line, wrap description
+                usage_content+="
+    printf \"  %-6s %-20s\n\" \"$short$comma\" \"$long$argname\"
+    printf \"%${padding}s%s\n\" \"\" \"\$wrapped_desc\""
+            else
+                # %-20s reserves 20 characters for the option fields, left-aligned
+                # Note that, if there's no short or no long, they just won't be
+                # printed
+                usage_content+="
+    printf \"  %-6s %-20s %s\n\" \"$short$comma\" \"$long$argname\" \"\$wrapped_desc\""
+            fi
+            if [[ -v short && -v long ]]; then
+                options_content+="                ${short}|${long})"
+            else
+                # If only one exists, it will only print the one which does
+                options_content+="                ${short}${long})"
+            fi
+            # # Closing bracket to singal end of option alternatives
+            # options_content+=")"
+            # If the data associative array includes default for this option,
+            # or option is required, object if end user doesn't supply arg
+            if [[ -v data[_${opt_name}_default_] ]] || [[ "${data[_${opt_name}_required_]}" == "true" ]]; then
+                option_default_value="${data["_${opt_name}_default_"]}"
+                options_content+="
+                    if [[ -z \"\$2\" ]]; then
+                        printf \"ERROR: Option %s requires an argument\\n\" \"\$1\"
+                        exit 1
+                    elif [[ \"\$2\" =~ ^- ]]; then
+                        printf \"ERROR: Option %s requires an argument; got option %s instead\\n\" \"\$1\" \"\$2\"
+                        exit 1
+                    else
+                        $opt_name=\"\$2\"
+                        shift
+                        shift
+                    fi"
+
+
+                if [[ -v data[_${opt_name}_default_] ]]; then
+                    defaults+="    ${opt_name}=\"${option_default_value}\"
+"
+                else
+                    defaults+="    unset ${opt_name}
+"
+                    end+="
+    if [[ ! -v ${opt_name} ]]; then
+        printf \"ERROR: Missing required option: ${short} ${long}\\n\"
+        exit 1
+    fi
+"
+                fi
+            else
+                # If there's no default and it's not required, it's a boolean
+                options_content+="
+                    $opt_name=true
+                    shift"
+                defaults+="    ${opt_name}=false
+"
+            fi
+            options_content+="
+                    ;;
+"
+        fi
+    done
+    _paropts_show "$options_content" "$defaults" "$end" "${data[_has_usage_]}" "${data[_cmd_name_]}"
+    args=(
+        "${data["_cmd_name_"]}"
+        "${data["_description_"]}"
+        "${data["_usage_line_"]}"
+        "${data["_pre_message_"]}"
+        "${data["_post_message_"]}"
+    )
+    # If user wants usage function...
+    if [[ "${data[_has_usage_]}" == "true" ]]; then
+       set_usage_function "${args[@]}"
+    fi
+}
+
+# ###################################
+# declare -A options=(
+#     # Options (option will be called 'option_<key>', e.g. 'option_aaa')
+#     ['aaa']="-a --aaa --option-a"  # space-separated equivalent options
+#     # 2025-04-30 done: can description be optional? Yes
+#     ['_aaa_describe_']="This does a thing..."  # description of option 'aaa'
+#     ['_aaa_default_']="Default"  # optional default value to assign to option
+#     ['b']="-b"
+#     ['_b_describe_']="This does something else"
+#     ['ccc']="--cc-c"
+#     ['_ccc_describe_']="Yet another thing XXX"
+#     ['_ccc_default_']="Default value of 'ccc'"
+#     ['dopt']="--ddd -d"
+#     ['_dopt_describe_']="Description of 'dopt'"
+    
+#     # Optional filename
+#     ['_filename_']="$paropts"  # default is 'paropts'
+#     # Optional prefix for option names (can set to "" for no prefix)
+#     ['_prefix_']="opt_"  # default is 'option_
+    
+#     # Info for 'usage' function (optional, unless '_usage_' is set to true)
+#     ['_usage_']=true  # have the usage function?
+#     ['_cmd_name_']="test-cmd"  # name of command/script to be called by user
+#     ['_description_']="$description"  # descr. of cmd displayed in 'usage'
+#     ['_usage_pre_']="$pre_message"  # optional mssg for start of 'usage'
+#     ['_usage_post_']="$post_message"  # optional mssg for end of 'usage'
+# )
+# ################################
+
+declare -A data_arr=()
+paropts_add() {
+    # Initialise positional array
+    positional=()
+    required=false
+    # Also reset variables so it doesn't take them from previous function calls
+    unset default
+    unset explanation
+    unset name_arg
+    while [[ $# -gt 0 ]]; do  # loop through all arguments
+        if [[ "$1" =~ ^- ]]; then  # sort those starting with a dash
+            case "$1" in
+                -d|--default)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        default="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -e|--explanation)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        explanation="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -n|--name-arg)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        name_arg="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -r|--required)
+                    required=true
+                    shift
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    printf "ERROR: Incorrect option %s" "$1"
+                    exit 1
+                    ;;
+            esac
+        else
+            positional+=("$1")
+            shift
+        fi
+    done
+    while [[ $# -gt 0 ]]; do
+        # Deal with positional arguments after --
+        positional+=("$1")
+        shift
+    done
+    # Now we take the first positional argument (mandatory) as the name of the
+    # option, then the second (mandatory) as the list of options separated by
+    # semi-colon
+    if [[ "${#positional[@]}" -lt 2 ]]; then
+        printf "Positional arguments missing - two required"
+        exit 1
+    fi
+    optname="${positional[0]}"
+    # Sanitise optname, as it has to be a legitimate variable name
+    if [[ ! "$optname" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        printf "Invalid option name: '%s'. Must obey variable naming rules" "${optname}"
+        exit 1
+    fi
+    # Split up optionset, by replacing occurences of ";" with " "
+    IFS=';' read -a alt_options <<< "${positional[1]}"
+    data_arr["$optname"]="${alt_options[@]}"
+    # We explicilty unset array keys if not needed because they may have been
+    # set in a previous go
+    if [ -v "default" ]; then
+        if [ "$required" = true ]; then
+            printf "ERROR: default (-d/--default) and required (-r/--required) are incompatible"
+            exit 1
+        fi
+        data_arr["_${optname}_default_"]="$default"
+    else
+        unset data_arr["_${optname}_default_"]
+    fi
+    if [ -v "explanation" ]; then
+        data_arr["_${optname}_explanation_"]="$explanation"
+    else
+        unset data_arr["_${optname}_explanation_"]
+    fi
+    if [ -v "name_arg" ]; then
+        data_arr["_${optname}_name_arg_"]="$name_arg"
+    else
+        unset data_arr["_${optname}_name_"]
+    fi
+    data_arr["_${optname}_required_"]="$required"
+}
+
+paropts_setup() {
+    positional=()
+    data_arr["_has_usage_"]=false
+    data_arr["_post_message_"]=""
+    data_arr["_pre_message_"]=""
+    data_arr["_usage_line_"]=""
+    data_arr["_filename_"]="parsopts"
+    while [[ "$#" -gt 0 ]]; do  # loop through all arguments
+        if [[ "$1" =~ ^- ]]; then  # sort those starting with a dash
+            case "$1" in
+                -a|--after)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        data_arr["_post_message_"]="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -b|--before)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        data_arr["_pre_message_"]="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -d|--description)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        data_arr["_description_"]="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -f|--file)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        data_arr["_filename_"]="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                --ul|--usage-line)
+                    _checkargs "$1" "$2"
+                    if [[ "$found" == true ]]; then
+                        data_arr["_usage_line_"]="$2"
+                        shift
+                        shift
+                    fi
+                    ;;
+                -u|--usage)
+                    data_arr["_has_usage_"]=true
+                    shift
+                    ;;
+                --)
+                    shift
+                    break
+                    ;;
+                *)
+                    printf "ERROR: Incorrect option %s" "$1"
+                    exit 1
+                    ;;
+            esac
+        else
+            positional+=("$1")
+            shift
+        fi
+    done
+    while [[ $# -gt 0 ]]; do
+        # Deal with positional arguments after --
+        positional+=("$1")
+        shift
+    done
+    if [[ "${#positional[@]}" -lt 1 ]]; then
+        printf "Positional arguments missing - one required"
+        exit 1
+    fi
+    data_arr["_cmd_name_"]="${positional[0]}"
+}
+
+paropts_finalize() {
+    # Set up file to write to
+    if [[ ! "$#" -eq 0 ]]; then
+        options_filename="$1"
+    else
+        options_filename="paropts"
+    fi
+    paropts_add_all data_arr
+}

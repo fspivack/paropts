@@ -1,0 +1,27 @@
+#!/bin/bash
+    
+
+# Get directory of this script
+PARENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+FILENAME="${PARENT_DIR}/out2"
+
+source "$FILENAME"
+parse_options "$@"
+
+printf "aa_a is %s\n" "$aa_a"
+printf "b is %s\n" "$b"
+printf "ccc is %s\n" "$ccc"
+printf "d_opt is %s\n" "$d_opt"
+printf "e_opt is %s\n" "$e_opt"
+
+printf "Positional arguments:"
+for p in "${positional[@]}"; do
+    printf "%s\n" "$p"
+done
+
+# Try calling the script with different arguments
+# E.g.
+# testparopts TEST --ddd "Required option"
+# testparopts -a Hello -b --ddd Test "This is positional arg"
+# testparopts --ddd Test "This is positional arg" -- "Another positional"
+# testparopts --help

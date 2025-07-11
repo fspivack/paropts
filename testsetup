@@ -1,0 +1,22 @@
+#!/bin/bash
+
+
+# Demonstrates setting up the output file, so that it can then be used in other
+# scripts
+# Simpler setup to "testparopts" - not using a pre-message, a post-message or a
+# custom usage line
+
+# Get directory of this script
+PARENT_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+FILENAME="${PARENT_DIR}/out2"
+
+# Source paropts. Replace this with the path to paropts on your system
+source "${PARENT_DIR}/paropts"
+
+paropts_add "aa_a" "a;option-a" -d "A default" -e "This does a thing..." -n "FIRSTARG"
+paropts_add "b" "b" -e "This does something else really long text really long text really long text"
+paropts_add "ccc" "cc-c" -e "Yet another thing. ARG is the argument" -d "Default value of 'ccc'" -n "ARG"
+paropts_add "d_opt" "ddd;d" -e "Description of 'dopt'" -r -n "ANOTHER"
+paropts_add "e_opt" "e;eee-really-really-long-opt" -e "This is what 'e' does - no argument required. Long message. This is what 'e' does - no argument required"
+paropts_setup "$(basename "$0")" -u -d "Description of program"
+paropts_finalize "$FILENAME"
