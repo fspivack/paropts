@@ -153,7 +153,7 @@ paropts_finalize "<path-to-output>"
 ```
 Now, in your actual program, you can type:
 ```bash
-source "<path-to-output"
+source "<path-to-output>"
 parse_options "$@"
 ```
 For testing, we can add:
@@ -162,7 +162,7 @@ printf "aa_a is %s\n" "$aa_a"
 printf "b is %s\n" "$b"
 printf "d_opt is %s\n" "$d_opt"
 
-printf "Positional arguments:"
+printf "\nPositional arguments:\n"
 for p in "${positional[@]}"; do
     printf "%s\n" "$p"
 done
@@ -209,7 +209,7 @@ There are three test scripts: `paropts-test`, `paropts-test-setup` and `paropts-
 
 `paropts-test-final` utilises the output file created by `paropts-test-setup`, so that any arguments/options passed to it will be parsed as intended.
 
-Note: You should run the test scripts as `/path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
+Note: You should run the test scripts as `./path/to/<testfile>` (plus any arguments), because running as `source /path/to/testfile` or `. /path/to/testfile` will result in the terminal closing if the program exits.
 
 See the test files for suggestions on what arguments to call in order to test the argument parsing.
 
