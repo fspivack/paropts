@@ -19,7 +19,7 @@ printf "ccc is %s\n" "$ccc"
 printf "d_opt is %s\n" "$d_opt"
 printf "e_opt is %s\n" "$e_opt"
 
-printf "Positional arguments:\n"
+printf "\nPositional arguments:\n"
 for p in "${positional[@]}"; do
     printf "%s\n" "$p"
 done

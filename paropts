@@ -45,8 +45,9 @@ set_usage_function() {
 po_usage() {
 
     # Get terminal width
-    terminal=\$(tty)
-    columns=\$(stty -a <\"\$terminal\" | grep -Po '(?<=columns )\d+')
+    # terminal=\$(tty)
+    # columns=\$(stty -a <\"\$terminal\" | grep -Po '(?<=columns )\d+')
+    columns=\$(stty size | awk '{print \$2}')
     padding=$padding
 
     printf \"$4\\n\"
