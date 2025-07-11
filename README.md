@@ -218,7 +218,7 @@ See the test files for suggestions on what arguments to call in order to test th
 You may want to include this program in your own codebase, so that you and your collaborators can build your program directly from the repository. There are two main ways to do this:
 
 1. **Simply copy the script `paropts`** into your repository.  
-   This is the simplest option, and is recommended if the script isn't likely to change significantly for your use.
+   This is the simplest option, and is recommended if you're happy with the current version, as the script isn't likely to change significantly.
 
 2. **Include this repository as a Git subtree.**  
    To do this, run the following command in your terminal (this only needs to be done once):
