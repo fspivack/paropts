@@ -29,7 +29,7 @@ _checkargs() {
     fi
 }
 
-set_usage_function() {
+_set_usage_function() {
     # $1 is command name
     # $2  description of cmd (optional, but recommended)
     # $3 is usage line (optional)
@@ -123,7 +123,7 @@ $3
     printf "%s" "$opts_list" > "$options_filename"
 }
 
-paropts_add_all() {
+_paropts_add_all() {
     # Note: Options will be sorted alphabetically according to their names, not
     # the actual options
 
@@ -288,38 +288,40 @@ paropts_add_all() {
     )
     # If user wants usage function...
     if [[ "${data[_has_usage_]}" == "true" ]]; then
-       set_usage_function "${args[@]}"
+       _set_usage_function "${args[@]}"
     fi
 }
 
-# ###################################
+# ##############################################################################
+# This is the format of the input which gets passed to "_paropts_add_all"
+# This was the original way for the user to put input, but was significantly too
+# clunky
+# It's remaining here to make it easier to maintain the code
+#
 # declare -A options=(
 #     # Options (option will be called 'option_<key>', e.g. 'option_aaa')
-#     ['aaa']="-a --aaa --option-a"  # space-separated equivalent options
+#     ['aaa']="a option-a"  # space-separated equivalent options
 #     # 2025-04-30 done: can description be optional? Yes
-#     ['_aaa_describe_']="This does a thing..."  # description of option 'aaa'
+#     ['_aaa_explanation_']="This does a thing..."  # description of option 'aaa'
 #     ['_aaa_default_']="Default"  # optional default value to assign to option
-#     ['b']="-b"
-#     ['_b_describe_']="This does something else"
-#     ['ccc']="--cc-c"
-#     ['_ccc_describe_']="Yet another thing XXX"
+#     ['b']="b"
+#     ['_b_explanation_']="This does something else"
+#     ['ccc']="cc-c"
+#     ['_ccc_explanation_']="Yet another thing XXX"
 #     ['_ccc_default_']="Default value of 'ccc'"
-#     ['dopt']="--ddd -d"
-#     ['_dopt_describe_']="Description of 'dopt'"
-    
-#     # Optional filename
-#     ['_filename_']="$paropts"  # default is 'paropts'
-#     # Optional prefix for option names (can set to "" for no prefix)
-#     ['_prefix_']="opt_"  # default is 'option_
-    
+#     ['dopt']="ddd d"
+#     ['_dopt_explanation_']="Description of 'dopt'"
+#     ['_dopt_required_']=true
+#
 #     # Info for 'usage' function (optional, unless '_usage_' is set to true)
-#     ['_usage_']=true  # have the usage function?
+#     ['_has_usage_']=true  # have the usage function?
 #     ['_cmd_name_']="test-cmd"  # name of command/script to be called by user
 #     ['_description_']="$description"  # descr. of cmd displayed in 'usage'
 #     ['_usage_pre_']="$pre_message"  # optional mssg for start of 'usage'
 #     ['_usage_post_']="$post_message"  # optional mssg for end of 'usage'
+#     ['_usage_line_']="USAGE a-command [OPTION]... [FILE]..."  # replace usage line?
 # )
-# ################################
+# ##############################################################################
 
 declare -A data_arr=()
 paropts_add() {
@@ -426,7 +428,6 @@ paropts_setup() {
     data_arr["_post_message_"]=""
     data_arr["_pre_message_"]=""
     data_arr["_usage_line_"]=""
-    data_arr["_filename_"]="parsopts"
     while [[ "$#" -gt 0 ]]; do  # loop through all arguments
         if [[ "$1" =~ ^- ]]; then  # sort those starting with a dash
             case "$1" in
@@ -450,14 +451,6 @@ paropts_setup() {
                     _checkargs "$1" "$2"
                     if [[ "$found" == true ]]; then
                         data_arr["_description_"]="$2"
-                        shift
-                        shift
-                    fi
-                    ;;
-                -f|--file)
-                    _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        data_arr["_filename_"]="$2"
                         shift
                         shift
                     fi
@@ -505,7 +498,8 @@ paropts_finalize() {
     if [[ ! "$#" -eq 0 ]]; then
         options_filename="$1"
     else
-        options_filename="paropts"
+        printf "ERROR: No file name provided to paropts_finalize\n"
+        exit 1
     fi
-    paropts_add_all data_arr
+    _paropts_add_all data_arr
 }

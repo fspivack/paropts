@@ -24,11 +24,11 @@ E.g.:
 4. Call the function `paropts_finalize`, passing the filename where you want the output to be printed. Note that it's best practice to pass the full filepath of the location you want the output printed. If you do not, then it will be printed relative to the directory where your script is being run from
 E.g.:
 ```bash
-    paropts_finalize "<output_filepath>"
+    paropts_finalize "<output-filepath>"
 ```
 5. Source your output file in the script which you want to have access to the options:
 ```bash
-source "<output_filepath>"
+source "<output-filepath>"
 ```
 7. Finally, call the function `parse_options` from the output file, passing it the arguments which have been passed to your program:
 ```bash
@@ -61,7 +61,7 @@ Suppose your option is called OPT.
 
 Note that `--required` and `--default` are incompatible. An option which is not required and doesn't have a default is assumed to be a flag, and the associated variable will be set to true if the user uses it, and false if they don't.
 
-Please don't insert dashes into your options - that will be taken case of by `paropts`. (A multi-character option will get a double-dash and single-character option will get a single dash (apart from the unlikely scenario where you have two equivalent single-character options, in which case one will get a double-dash)
+Please don't add dashes to the front of your options - that will be taken case of by `paropts`. (A multi-character option will get a double-dash and single-character option will get a single dash (apart from the unlikely scenario where you have two equivalent single-character options, in which case one will get a double-dash)
 
 ### Function `paropts_setup`
 
@@ -85,7 +85,7 @@ Sets up the usage function.
 - **`--ul` `--usage_line`**
 &nbsp;&nbsp;&nbsp;&nbsp;Put this if you want to replace the usage line in the usage function. The default is
 ```
-USAGE: <your_command_name> [OPTIONS]
+USAGE: <your-command-name> [OPTIONS]
 ```
 - **`-u` `--usage`**
 &nbsp;&nbsp;&nbsp;&nbsp;Include this option if you want a usage function
@@ -145,7 +145,7 @@ paropts_add "d_opt" "ddd;d" -e "Description of 'dopt'. This otpion uses 'ARG2'. 
 
 
 # This will make sure to include a usage function (po_usage)
-paropts_setup "<your-command_name>" -u -d "Description of program"
+paropts_setup "<your-command-name>" -u -d "Description of program"
 
 # Finalise setup, and pass the full file path of where you want the output printed
 paropts_finalize "<path-to-output>"
@@ -187,7 +187,7 @@ If they type:
 ```
 They will get:
 ```bash
-USAGE: <your-command_name> [OPTIONS]
+USAGE: <your-command-name> [OPTIONS]
 
 Description of program
 
