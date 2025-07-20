@@ -50,6 +50,8 @@ Adds options, including a name for the variable where you want the output stored
 
 Suppose your option is called OPT.
 
+-**-`b` `--bool`**
+&nbsp;&nbsp;&nbsp;&nbsp;Is this option a (boolean) flag - i.e. true if the user inputs it, and false if they don't?
 - **`-d` `--default`**
 &nbsp;&nbsp;&nbsp;&nbsp;The value to set OPT to if  the user doesn't provide the OPT
 - **`-e` `--explanation`**
@@ -59,9 +61,9 @@ Suppose your option is called OPT.
 - **`-r` `--required`**
 &nbsp;&nbsp;&nbsp;&nbsp;Is OPT required?
 
-Note that `--required` and `--default` are incompatible. An option which is not required and doesn't have a default is assumed to be a flag, and the associated variable will be set to true if the user uses it, and false if they don't.
+Note that `--required` and `--default` are incompatible. Also, `--bool` is incompatible with both `--required` and `--default`.
 
-Please don't add dashes to the front of your options - that will be taken case of by `paropts`. (A multi-character option will get a double-dash and single-character option will get a single dash (apart from the unlikely scenario where you have two equivalent single-character options, in which case one will get a double-dash)
+Please don't add dashes to the front of your options - that will be taken case of by `paropts`. (A multi-character option will get a double-dash and single-character option will get a single dash (apart from the unlikely scenario where you have two equivalent single-character options, in which case one will get a double-dash))
 
 ### Function `paropts_setup`
 
@@ -138,8 +140,8 @@ Here's how you generate the output file:
 source "<path-to-paropts>"
 # This will result in a variable called "aa_a", with associated options "-a" and "--option-a"
 paropts_add "aa_a" "a;option-a" -d "A default" -e "This does a thing..." -n "FIRSTARG"
-# This will result in a variable called "b", with associated option "-b"
-paropts_add "b" "b" -e "Explanation of option b"
+# This will result in a flag variable called "b", with associated option "-b"
+paropts_add "b" "b" -e "Explanation of option b" --bool
 # This will result in a REQUIRED variable called "d_opt", with associated options "-d" and "--ddd"
 paropts_add "d_opt" "ddd;d" -e "Description of 'dopt'. This otpion uses 'ARG2'. This is a long explanation" -r -n "ARG2"
 
