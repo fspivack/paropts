@@ -18,6 +18,11 @@ printf "b is %s\n" "$b"
 printf "ccc is %s\n" "$ccc"
 printf "d_opt is %s\n" "$d_opt"
 printf "e_opt is %s\n" "$e_opt"
+if [ -v "f_option" ]; then
+    printf "f_option is %s\n" "$f_option"
+else
+    printf "f_option is unset\n"
+fi
 
 printf "\nPositional arguments:\n"
 for p in "${positional[@]}"; do

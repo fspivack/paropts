@@ -22,10 +22,11 @@ usage_line="USAGE a-command [OPTION]... [FILE]..."
 
 if [ ! -f "$FILENAME" ]; then
     paropts_add "aa_a" "a;option-a" -d "A default" -e "This does a thing..." -n "FIRSTARG"
-    paropts_add "b" "b" -e "This does something else really long text really long text really long text"
+    paropts_add "b" "b" -e "This does something else really long text really long text really long text" -b
     paropts_add "ccc" "cc-c" -e "Yet another thing. ARG is the argument" -d "Default value of 'ccc'" -n "ARG"
     paropts_add "d_opt" "ddd;d" -e "Description of 'dopt'" -r -n "ANOTHER"
-    paropts_add "e_opt" "e;eee-really-really-long-opt" -e "This is what 'e' does - no argument required. Long message. This is what 'e' does - no argument required"
+    paropts_add "e_opt" "e;eee-really-really-long-opt" --bool -e "This is what 'e' does - no argument required. Long message. This is what 'e' does - no argument required"
+    paropts_add "f_option" "f" -e "No default, not required and not a bool (flag), so takes an arg" -n "F_ARG"
     paropts_setup "$(basename "$0")" -u -d "Description of program" -b "$pre_message" -a "This is the post-message" --ul "$usage_line"
     paropts_finalize "$FILENAME"
 fi
@@ -37,6 +38,11 @@ printf "b is %s\n" "$b"
 printf "ccc is %s\n" "$ccc"
 printf "d_opt is %s\n" "$d_opt"
 printf "e_opt is %s\n" "$e_opt"
+if [ -v "f_option" ]; then
+    printf "f_option is %s\n" "$f_option"
+else
+    printf "f_option is unset\n"
+fi
 
 printf "\nPositional arguments:\n"
 for p in "${positional[@]}"; do

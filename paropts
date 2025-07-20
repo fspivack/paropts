@@ -19,10 +19,10 @@
 _checkargs() {
     found=false
     if [[ -z "$2" ]]; then
-        printf "ERROR: Option %s requires an argument\n" "$1"
+        printf "ERROR: Option %s requires an argument\n" "$1" >&2
         exit 1
     elif [[ "$2" =~ ^- ]]; then
-        printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2"
+        printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2" >&2
         exit 1
     else
         found=true
@@ -68,7 +68,7 @@ _paropts_show() {
     # $2 is the defaults
     # $3 is the end code block(s)
     # $4 is whether the user wants a usage function, and therefore a help option
-    ## $5 is an optional command name - shoud be set if usage is wanted
+    # $5 is an optional command name - shoud be set if usage is wanted
     opts_list="#!/bin/bash
 
 parse_options() {
@@ -96,11 +96,11 @@ $1"
                     break
                     ;;
                 *)
-                    printf \"ERROR: Incorrect option %s\\\n\" \"\$1\"
+                    printf \"ERROR: Incorrect option %s\\n\" \"\$1\" >&2
 "
     if [[ "$4" == "true" ]]; then
         opts_list+="
-                    printf \"Type '$5 --help' for usage\n\"
+                    printf \"Type '$5 --help' for usage\n\" >&2
 "
     fi
     opts_list+="
@@ -236,14 +236,16 @@ _paropts_add_all() {
             # options_content+=")"
             # If the data associative array includes default for this option,
             # or option is required, object if end user doesn't supply arg
-            if [[ -v data[_${opt_name}_default_] ]] || [[ "${data[_${opt_name}_required_]}" == "true" ]]; then
-                option_default_value="${data["_${opt_name}_default_"]}"
+            # UPDATE: if not bool, object if user usees option but doesn't
+            # supply arg
+            if [[ "${data[_${opt_name}_bool_]}" == "false" ]]; then
+            # if [[ -v data[_${opt_name}_default_] ]] || [[ "${data[_${opt_name}_required_]}" == "true" ]]; then
                 options_content+="
                     if [[ -z \"\$2\" ]]; then
-                        printf \"ERROR: Option %s requires an argument\\n\" \"\$1\"
+                        printf \"ERROR: Option %s requires an argument\\n\" \"\$1\" >&2
                         exit 1
                     elif [[ \"\$2\" =~ ^- ]]; then
-                        printf \"ERROR: Option %s requires an argument; got option %s instead\\n\" \"\$1\" \"\$2\"
+                        printf \"ERROR: Option %s requires an argument; got option %s instead\\n\" \"\$1\" \"\$2\" >&2
                         exit 1
                     else
                         $opt_name=\"\$2\"
@@ -253,25 +255,30 @@ _paropts_add_all() {
 
 
                 if [[ -v data[_${opt_name}_default_] ]]; then
+                    option_default_value="${data["_${opt_name}_default_"]}"
                     defaults+="    ${opt_name}=\"${option_default_value}\"
 "
                 else
                     defaults+="    unset ${opt_name}
 "
-                    end+="
+                    if [[ "${data[_${opt_name}_required_]}" == "true" ]]; then
+                        end+="
     if [[ ! -v ${opt_name} ]]; then
-        printf \"ERROR: Missing required option: ${short} ${long}\\n\"
+        printf \"ERROR: Missing required option: ${short} ${long}\\n\" >&2
         exit 1
     fi
 "
+                   fi
                 fi
             else
                 # If there's no default and it's not required, it's a boolean
+                # UPDATE: No it's not, but it is if the user put the bool flag
                 options_content+="
                     $opt_name=true
                     shift"
                 defaults+="    ${opt_name}=false
 "
+            # fi
             fi
             options_content+="
                     ;;
@@ -328,6 +335,7 @@ paropts_add() {
     # Initialise positional array
     positional=()
     required=false
+    bool=false
     # Also reset variables so it doesn't take them from previous function calls
     unset default
     unset explanation
@@ -335,6 +343,10 @@ paropts_add() {
     while [[ $# -gt 0 ]]; do  # loop through all arguments
         if [[ "$1" =~ ^- ]]; then  # sort those starting with a dash
             case "$1" in
+                -b|--bool)
+                    bool=true
+                    shift
+                    ;;
                 -d|--default)
                     _checkargs "$1" "$2"
                     if [[ "$found" == true ]]; then
@@ -368,7 +380,7 @@ paropts_add() {
                     break
                     ;;
                 *)
-                    printf "ERROR: Incorrect option %s" "$1"
+                    printf "ERROR: Incorrect option %s\n" "$1" >&2
                     exit 1
                     ;;
             esac
@@ -386,13 +398,13 @@ paropts_add() {
     # option, then the second (mandatory) as the list of options separated by
     # semi-colon
     if [[ "${#positional[@]}" -lt 2 ]]; then
-        printf "Positional arguments missing - two required"
+        printf "ERROR: Positional arguments missing - two required\n" >&2
         exit 1
     fi
     optname="${positional[0]}"
     # Sanitise optname, as it has to be a legitimate variable name
     if [[ ! "$optname" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-        printf "Invalid option name: '%s'. Must obey variable naming rules" "${optname}"
+        printf "ERROR: Invalid option name: '%s'. Must obey variable naming rules\n" "${optname}" >&2
         exit 1
     fi
     # Split up optionset, by replacing occurences of ";" with " "
@@ -400,9 +412,18 @@ paropts_add() {
     data_arr["$optname"]="${alt_options[@]}"
     # We explicilty unset array keys if not needed because they may have been
     # set in a previous go
+    if [ "$bool" == true -a "$required" == true ]; then
+        printf "ERROR: bool (-b/--bool) and required (-r/--required) are incompatible\n" >&2
+        exit 1
+    fi
+    data_arr["_${optname}_bool_"]="$bool"
     if [ -v "default" ]; then
         if [ "$required" = true ]; then
-            printf "ERROR: default (-d/--default) and required (-r/--required) are incompatible"
+            printf "ERROR: default (-d/--default) and required (-r/--required) are incompatible\n" >&2
+            exit 1
+        fi
+        if [ "$bool" = true ]; then
+            printf "ERROR: default (-d/--default) and bool (-b/--bool) are incompatible\n" >&2
             exit 1
         fi
         data_arr["_${optname}_default_"]="$default"
@@ -472,7 +493,7 @@ paropts_setup() {
                     break
                     ;;
                 *)
-                    printf "ERROR: Incorrect option %s" "$1"
+                    printf "ERROR: Incorrect option %s\n" "$1" >&2
                     exit 1
                     ;;
             esac
@@ -487,7 +508,7 @@ paropts_setup() {
         shift
     done
     if [[ "${#positional[@]}" -lt 1 ]]; then
-        printf "Positional arguments missing - one required"
+        printf "Positional arguments missing - one required\n" >&2
         exit 1
     fi
     data_arr["_cmd_name_"]="${positional[0]}"
@@ -498,7 +519,7 @@ paropts_finalize() {
     if [[ ! "$#" -eq 0 ]]; then
         options_filename="$1"
     else
-        printf "ERROR: No file name provided to paropts_finalize\n"
+        printf "ERROR: No file name provided to paropts_finalize\n" >&2
         exit 1
     fi
     _paropts_add_all data_arr
