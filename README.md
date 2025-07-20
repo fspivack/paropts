@@ -50,7 +50,7 @@ Adds options, including a name for the variable where you want the output stored
 
 Suppose your option is called OPT.
 
--**-`b` `--bool`**
+- **-`b` `--bool`**
 &nbsp;&nbsp;&nbsp;&nbsp;Is this option a (boolean) flag - i.e. true if the user inputs it, and false if they don't?
 - **`-d` `--default`**
 &nbsp;&nbsp;&nbsp;&nbsp;The value to set OPT to if  the user doesn't provide the OPT
