@@ -381,27 +381,27 @@ _paropts_add_all() {
 # clunky
 # It's remaining here to make it easier to maintain the code
 #
-# declare -A options=(
-#     # Options (option will be called 'option_<key>', e.g. 'option_aaa')
+# declare -A data_arr=(
 #     ['aaa']="a option-a"  # space-separated equivalent options
-#     # 2025-04-30 done: can description be optional? Yes
 #     ['_aaa_explanation_']="This does a thing..."  # description of option 'aaa'
 #     ['_aaa_default_']="Default"  # optional default value to assign to option
+#     ['__aaa_name_arg_']="FIRSTARG"  # name of arg to appear in po_usage
 #     ['b']="b"
 #     ['_b_explanation_']="This does something else"
+#     ['_b_bool_']=true # is the otpion boolean (true if used, false otherwise)?
 #     ['ccc']="cc-c"
 #     ['_ccc_explanation_']="Yet another thing XXX"
 #     ['_ccc_default_']="Default value of 'ccc'"
 #     ['dopt']="ddd d"
 #     ['_dopt_explanation_']="Description of 'dopt'"
-#     ['_dopt_required_']=true
+#     ['_dopt_required_']=true  # is the option required?
 #
-#     # Info for 'usage' function (optional, unless '_usage_' is set to true)
+#     # Info for 'usage' function (optional, unless '_has_usage_' is set to true)
 #     ['_has_usage_']=true  # have the usage function?
 #     ['_cmd_name_']="test-cmd"  # name of command/script to be called by user
 #     ['_description_']="$description"  # descr. of cmd displayed in 'usage'
-#     ['_usage_pre_']="$pre_message"  # optional mssg for start of 'usage'
-#     ['_usage_post_']="$post_message"  # optional mssg for end of 'usage'
+#     ['_pre_message_']="$pre_message"  # optional mssg for start of 'usage'
+#     ['_post_message_']="$post_message"  # optional mssg for end of 'usage'
 #     ['_usage_line_']="USAGE a-command [OPTION]... [FILE]..."  # replace usage line?
 # )
 # ##############################################################################
