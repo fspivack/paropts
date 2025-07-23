@@ -16,6 +16,19 @@
 # todo: Potentially check use of -n/--name-arg against whether the option
 # actually takes an argument
 
+_checkargs() {
+    found=false
+    if [[ -z "$2" ]]; then
+        printf "ERROR: Option %s requires an argument\n" "$1" >&2
+        exit 1
+    elif [[ "$2" =~ ^- ]]; then
+        printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2" >&2
+        exit 1
+    else
+        found=true
+    fi
+}
+
 # Attempt at refactoring
 ################################################################################
 
@@ -143,25 +156,41 @@ $handle_required
     printf "%s\n" "$parse_func" > "$options_filename"
 }
 
-_checkargs() {
-    found=false
-    if [[ -z "$2" ]]; then
-        printf "ERROR: Option %s requires an argument\n" "$1" >&2
-        exit 1
-    elif [[ "$2" =~ ^- ]]; then
-        printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2" >&2
-        exit 1
-    else
-        found=true
-    fi
+_usage_wrap_string() {
+    # $1 is the option explanation
+    printf "
+    wrapped_desc=\$(echo \"$1\" | fold -s -w \$((columns - padding)) | sed \"2,\\\$s/^/\$(printf '%%*s' \$padding)/\")"
+}
+
+_usage_print_long_string() {
+    # $1 is short (as in short option - may not have one)
+    # $2 is comma (empty or a comma)
+    # $3 is long (as in long option - may not have one)
+    # $4 is argname for output
+    printf "
+    printf \"  %%-6s %%-20s\\\n\" \"%s%s\" \"%s\"
+    printf \"${padding}s%s\\\n\" \"\" \"\$wrapped_desc\"" "$1" "$2" "$3$4"
+}
+
+_usage_print_string() {
+    # $1 is short (as in short option - may not have one)
+    # $2 is comma (empty or a comma)
+    # $3 is long (as in long option - may not have one)
+    # $4 is argname for output
+    # printf "
+    # printf \"  %%-6s %%-20s %s\\\n\" \"%s%s\" \"%s\" \"\$wrapped_desc\"" "$1" "$2" "$3$4"
+    printf "
+    printf \"  %%-6s %%-20s %%s\\\n\" \"%s\" \"%s\" \"\$wrapped_desc\"" "$1$2" "$3$4"
 }
 
 _set_usage_function() {
+    # todo: what if one optional argument is not passed and the next one is??
     # $1 is command name
     # $2  description of cmd (optional, but recommended)
     # $3 is usage line (optional)
     # $4 is pre-message (optional)
     # $5 is post-message (optional)
+    # $6 is the actual usage content
     if [[ -n "$3" ]]; then
         usage_line="$3"
     else
@@ -181,7 +210,7 @@ po_usage() {
     printf \"$usage_line\\n\\n\"
     printf \"$2\\n\\n\"
     printf \"Options\\n\"
-$usage_content
+$6
     printf \"$5\\n\"
     # Clean exit
     exit 0
@@ -283,8 +312,7 @@ _paropts_add_all() {
                 if [[ -v data["_${opt_name}_explanation_"] ]]; then
                     opt_exp="${data["_${opt_name}_explanation_"]}"
                 else
-                    printf "WARNING: No explanation provided for %s" "$opt_name
-"
+                    printf "WARNING: No explanation provided for %s\n" "$opt_name" >&2
                     opt_exp=""
                 fi
             fi
@@ -338,20 +366,20 @@ _paropts_add_all() {
             optlength="${#long}"
             arglength="${#argname}"
             (( numchars = optlength + shortlen + arglength ))
-            usage_content+="
-    wrapped_desc=\$(echo \"$opt_exp\" | fold -s -w \$((columns - padding)) | sed \"2,\\\$s/^/\$(printf '%*s' \$padding)/\")
-"
+            usage_content+="$(_usage_wrap_string "$opt_exp")"
             if [[ "$numchars" -gt "$reserved" ]]; then
                 # Too long — print on one line, wrap description
-                usage_content+="
-    printf \"  %-6s %-20s\n\" \"$short$comma\" \"$long$argname\"
-    printf \"%${padding}s%s\n\" \"\" \"\$wrapped_desc\""
+                # usage_content+="
+    # printf \"  %-6s %-20s\n\" \"$short$comma\" \"$long$argname\"
+    # printf \"%${padding}s%s\n\" \"\" \"\$wrapped_desc\""
+                usage_content+="$(_usage_print_long_string "$short" "$comma" "$long" "$argname")"
             else
                 # %-20s reserves 20 characters for the option fields, left-aligned
                 # Note that, if there's no short or no long, they just won't be
                 # printed
-                usage_content+="
-    printf \"  %-6s %-20s %s\n\" \"$short$comma\" \"$long$argname\" \"\$wrapped_desc\""
+               #  usage_content+="
+    # printf \"  %-6s %-20s %s\n\" \"$short$comma\" \"$long$argname\" \"\$wrapped_desc\""
+                usage_content+="$(_usage_print_string "$short" "$comma" "$long" "$argname")"
             fi
             # if [[ -v short && -v long ]]; then
             #     options_content+="                ${short}|${long})"
@@ -411,6 +439,7 @@ _paropts_add_all() {
         "${data["_usage_line_"]}"
         "${data["_pre_message_"]}"
         "${data["_post_message_"]}"
+        "$usage_content"
     )
     # If user wants usage function...
     if [[ "${data[_has_usage_]}" == "true" ]]; then
