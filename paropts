@@ -49,6 +49,8 @@ _requires_arg_string() {
     # Prints the argument-checking code for the parse_options function output
     #
     # $1 is the variable name associated with the option
+    #
+    # If not bool, object if user uses option but doesn't supply arg
     printf "
                     if [[ -z \"\$2\" ]]; then
                         printf \"ERROR: Option %%s requires an argument\\\n\" \"\$1\" >&2
@@ -185,8 +187,9 @@ _usage_print_string() {
     # $2 is comma (empty or a comma)
     # $3 is long (as in long option - may not have one)
     # $4 is argname for output
-    # printf "
-    # printf \"  %%-6s %%-20s %s\\\n\" \"%s%s\" \"%s\" \"\$wrapped_desc\"" "$1" "$2" "$3$4"
+    #
+    # %-20s reserves 20 characters for the option fields, left-aligned
+    # Note that, if there's no short or no long, they just won't be printed
     printf "
     printf \"  %%-6s %%-20s %%s\\\n\" \"%s\" \"%s\" \"\$wrapped_desc\"" "$1$2" "$3$4"
 }
@@ -241,66 +244,6 @@ $6
     printf "%s" "$simple_usage_func" >> "$options_filename"
 }
 
-# _paropts_show() {
-#     # The unescaped "$1" sets out each case
-#     # $2 is the defaults
-#     # $3 is the end code block(s)
-#     # $4 is whether the user wants a usage function, and therefore a help option
-#     # $5 is an optional command name - shoud be set if usage is wanted
-#     opts_list="#!/bin/bash
-
-# parse_options() {
-#     # List to contain positional arguments (not values for options)
-#     positional=()
-
-#     # Set defaults - they only get overwriten if the user supplies the args
-# $2
-#     # Options
-#     while [[ \$# -gt 0 ]]; do  # loop through all arguments
-#         if [[ \"\$1\" =~ ^- ]]; then  # sort those starting with a dash
-#             case \"\$1\" in
-# $1"
-#     if [[ "$4" == "true" ]]; then
-#         opts_list+="
-#                 --help)
-#                     po_usage
-#                     break
-#                     ;;
-# "
-#     fi
-#     opts_list+="
-#                 --)
-#                     shift
-#                     break
-#                     ;;
-#                 *)
-#                     printf \"ERROR: Incorrect option %s\\n\" \"\$1\" >&2
-# "
-#     if [[ "$4" == "true" ]]; then
-#         opts_list+="
-#                     printf \"Type '$5 --help' for usage\n\" >&2
-# "
-#     fi
-#     opts_list+="
-#                     exit 1
-#                     ;;
-#             esac
-#         else
-#             positional+=(\"\$1\")
-#             shift
-#         fi
-#     done
-#     while [[ \$# -gt 0 ]]; do
-#         # Deal with positional arguments after "--"
-#         positional+=(\"\$1\")
-#         shift
-#     done
-# $3
-# }
-# "
-#     printf "%s" "$opts_list" > "$options_filename"
-# }
-
 _paropts_add_all() {
     # Note: Options will be sorted alphabetically according to their names, not
     # the actual options
@@ -339,9 +282,8 @@ _paropts_add_all() {
                 fi
             fi
             opt_vals=(${data[$opt_name]}) # remember we split this before
-            # We need the following array for the message about required opts            
-            dashed_opt_vals=()
             opt_val1="${opt_vals[0]}"
+            # Clear frm previous use
             unset short
             unset long
             if [ -v opt_vals[1] ]; then
@@ -374,7 +316,7 @@ _paropts_add_all() {
                     long="--${opt_val1}"
                 fi
             fi
-            # Get the name of the argument if applicable
+            # Get the name of the argument if applicable (for po_usage)
             if [[ -v data["_${opt_name}_name_arg_"] ]]; then
                 argname="=${data[_${opt_name}_name_arg_]}"
             else
@@ -391,48 +333,15 @@ _paropts_add_all() {
             usage_content+="$(_usage_wrap_string "$opt_exp")"
             if [[ "$numchars" -gt "$reserved" ]]; then
                 # Too long — print on one line, wrap description
-                # usage_content+="
-    # printf \"  %-6s %-20s\n\" \"$short$comma\" \"$long$argname\"
-    # printf \"%${padding}s%s\n\" \"\" \"\$wrapped_desc\""
                 usage_content+="$(_usage_print_long_string "$short" "$comma" "$long" "$argname")"
             else
-                # %-20s reserves 20 characters for the option fields, left-aligned
-                # Note that, if there's no short or no long, they just won't be
-                # printed
-               #  usage_content+="
-    # printf \"  %-6s %-20s %s\n\" \"$short$comma\" \"$long$argname\" \"\$wrapped_desc\""
                 usage_content+="$(_usage_print_string "$short" "$comma" "$long" "$argname")"
             fi
-            # if [[ -v short && -v long ]]; then
-            #     options_content+="                ${short}|${long})"
-            # else
-            #     # If only one exists, it will only print the one which does
-            #     options_content+="                ${short}${long})"
-            # fi
             options_content+="$(_option_setup_string $short $long)"
-            # # Closing bracket to singal end of option alternatives
-            # options_content+=")"
-            # If the data associative array includes default for this option,
-            # or option is required, object if end user doesn't supply arg
-            # UPDATE: if not bool, object if user usees option but doesn't
-            # supply arg
             bool=true
             if [[ "${data[_${opt_name}_bool_]}" == "false" ]]; then
-                # Bool is false, so we require an argument
-                # options_content+="
-                #     if [[ -z \"\$2\" ]]; then
-                #         printf \"ERROR: Option %s requires an argument\\n\" \"\$1\" >&2
-                #         exit 1
-                #     elif [[ \"\$2\" =~ ^- ]]; then
-                #         printf \"ERROR: Option %s requires an argument; got option %s instead\\n\" \"\$1\" \"\$2\" >&2
-                #         exit 1
-                #     else
-                #         $opt_name=\"\$2\"
-                #         shift
-                #         shift
-                #     fi"
+                # Option does not have the bool flag - requires argument
                 options_content+="$(_requires_arg_string "$opt_name")"
-
                 if [[ -v data[_${opt_name}_default_] ]]; then
                     option_default_value="${data["_${opt_name}_default_"]}"
                     defaults+="$(_default_string "$opt_name" false "$option_default_value")"
@@ -444,16 +353,13 @@ _paropts_add_all() {
                    fi
                 fi
             else
-                # If there's no default and it's not required, it's a boolean
-                # UPDATE: No it's not, but it is if the user put the bool flag
+                # Option has the bool flag
                 options_content+="$(_no_arg_string "$opt_name")"
                 defaults+="$(_default_string "$opt_name" false false)"
             # fi
             fi
-            # options_content+="$(option_string $short $long $bool)"
         fi
     done
-    # _paropts_show "$options_content" "$defaults" "$end" "${data[_has_usage_]}" "${data[_cmd_name_]}"
     _parse_func_string "$defaults" "$options_content" "$handle_required" "${data[_has_usage_]}"
     args=(
         "${data["_cmd_name_"]}"
@@ -500,6 +406,8 @@ _paropts_add_all() {
 # )
 # ##############################################################################
 
+# Clear the whole data array. User can source this script more than once in a
+# script if they want more than one output file
 declare -A data_arr=()
 paropts_add() {
     # Initialise positional array
