@@ -12,11 +12,14 @@
 # the interface for *their* user is neat. I may refactor this a bit, but the
 # interface will stay the same
 
+# UPDATE: Cleaned up and decoupled the strings for output from the logic
+
 # todo: Sanitise options etc.??? If so, it should mostly affect list of options
 # todo: Potentially check use of -n/--name-arg against whether the option
 # actually takes an argument
 
 _checkargs() {
+    # Check arguments to this script, for options requiring an argument
     found=false
     if [[ -z "$2" ]]; then
         printf "ERROR: Option %s requires an argument\n" "$1" >&2
@@ -29,10 +32,9 @@ _checkargs() {
     fi
 }
 
-# Attempt at refactoring
-################################################################################
-
 _option_setup_string() {
+    # Prints the setup to the parse_options function output
+    #
     # $1 is the short (dashed) option if it exists
     # $2 is the long (double-dashed) option if it exists
     if [[ -z "$1" || -z "$2" ]]; then
@@ -44,6 +46,8 @@ _option_setup_string() {
 }
 
 _requires_arg_string() {
+    # Prints the argument-checking code for the parse_options function output
+    #
     # $1 is the variable name associated with the option
     printf "
                     if [[ -z \"\$2\" ]]; then
@@ -61,6 +65,9 @@ _requires_arg_string() {
 }
 
 _no_arg_string() {
+    # Prints the code for options not requiring an argument for parse_options
+    #
+    # $1 is the variable name associated with the option
     printf "
                     %s=true
                     shift
@@ -68,6 +75,8 @@ _no_arg_string() {
 }
 
 _default_string() {
+    # Prints the code for managing defaults (or unsetting if no default) for parse_options
+    #
     # $1 is opt name
     # $2 is unset - true or false (for argument-taking variables which don't have a default)
     # $3 is default (false for bools)
@@ -81,6 +90,8 @@ _default_string() {
 }
 
 _handle_required_string() {
+    # Prints the code handling missing required opts for parse_options
+    #
     # $1 is option name
     # $2 is short dashed option (if exists)
     # $3 is long double dashed option (if exists)
@@ -93,6 +104,8 @@ _handle_required_string() {
 }
 
 _parse_func_string() {
+    # Prints the final code for parse_options output
+    #
     # Rename variables for clarity
     defaults="$1"
     options_list="$2"
@@ -157,22 +170,17 @@ $handle_required
 }
 
 _usage_wrap_string() {
+    # Prints the code for wrapping a long string according to the user's terminal width
+    # This is for the po_usage function output
+    #
     # $1 is the option explanation
     printf "
     wrapped_desc=\$(echo \"$1\" | fold -s -w \$((columns - padding)) | sed \"2,\\\$s/^/\$(printf '%%*s' \$padding)/\")"
 }
 
-_usage_print_long_string() {
-    # $1 is short (as in short option - may not have one)
-    # $2 is comma (empty or a comma)
-    # $3 is long (as in long option - may not have one)
-    # $4 is argname for output
-    printf "
-    printf \"  %%-6s %%-20s\\\n\" \"%s%s\" \"%s\"
-    printf \"${padding}s%s\\\n\" \"\" \"\$wrapped_desc\"" "$1" "$2" "$3$4"
-}
-
 _usage_print_string() {
+    # Prints the code for printing explanations in po_usage
+    #
     # $1 is short (as in short option - may not have one)
     # $2 is comma (empty or a comma)
     # $3 is long (as in long option - may not have one)
@@ -183,8 +191,22 @@ _usage_print_string() {
     printf \"  %%-6s %%-20s %%s\\\n\" \"%s\" \"%s\" \"\$wrapped_desc\"" "$1$2" "$3$4"
 }
 
+_usage_print_long_string() {
+    # Prints the code for when the option names are longer than allowed for, so
+    # we want the option explanation starting on the next line (for po_usage)
+    #
+    # $1 is short (as in short option - may not have one)
+    # $2 is comma (empty or a comma)
+    # $3 is long (as in long option - may not have one)
+    # $4 is argname for output
+    printf "
+    printf \"  %%-6s %%-20s\\\n\" \"%s%s\" \"%s\"
+    printf \"%%${padding}s%%s\\\n\" \"\" \"\$wrapped_desc\"" "$1" "$2" "$3$4"
+}
+
 _set_usage_function() {
-    # todo: what if one optional argument is not passed and the next one is??
+    # Prints the final code for po_usage output
+    #
     # $1 is command name
     # $2  description of cmd (optional, but recommended)
     # $3 is usage line (optional)
