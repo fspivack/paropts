@@ -118,7 +118,7 @@ _parse_func_string() {
     if [[ "$include_help" == true ]]; then
         help_option="
                 --help)
-                    po_usage
+                    paropts_usage
                     break
                     ;;"
         help_suggestion="
@@ -171,7 +171,7 @@ $handle_required
 
 _usage_wrap_string() {
     # Prints the code for wrapping a long string according to the user's terminal width
-    # This is for the po_usage function output
+    # This is for the paropts_usage function output
     #
     # $1 is the option explanation
     printf "
@@ -179,7 +179,7 @@ _usage_wrap_string() {
 }
 
 _usage_print_string() {
-    # Prints the code for printing explanations in po_usage
+    # Prints the code for printing explanations in paropts_usage
     #
     # $1 is short (as in short option - may not have one)
     # $2 is comma (empty or a comma)
@@ -194,7 +194,7 @@ _usage_print_string() {
 
 _usage_print_long_string() {
     # Prints the code for when the option names are longer than allowed for, so
-    # we want the option explanation starting on the next line (for po_usage)
+    # we want the option explanation starting on the next line (for paropts_usage)
     #
     # $1 is short (as in short option - may not have one)
     # $2 is comma (empty or a comma)
@@ -206,7 +206,7 @@ _usage_print_long_string() {
 }
 
 _set_usage_function() {
-    # Prints the final code for po_usage output
+    # Prints the final code for paropts_usage output
     #
     # $1 is command name
     # $2  description of cmd (optional, but recommended)
@@ -221,7 +221,7 @@ _set_usage_function() {
     fi
     simple_usage_func="
 
-po_usage() {
+paropts_usage() {
 
     # Get terminal width
     # terminal=\$(tty)
@@ -314,7 +314,7 @@ _paropts_add_all() {
                     long="--${opt_val1}"
                 fi
             fi
-            # Get the name of the argument if applicable (for po_usage)
+            # Get the name of the argument if applicable (for paropts_usage)
             if [[ -v data["_${opt_name}_name_arg_"] ]]; then
                 argname="=${data[_${opt_name}_name_arg_]}"
             else
@@ -383,7 +383,7 @@ _paropts_add_all() {
 #     ['aaa']="a option-a"  # space-separated equivalent options
 #     ['_aaa_explanation_']="This does a thing..."  # description of option 'aaa'
 #     ['_aaa_default_']="Default"  # optional default value to assign to option
-#     ['__aaa_name_arg_']="FIRSTARG"  # name of arg to appear in po_usage
+#     ['__aaa_name_arg_']="FIRSTARG"  # name of arg to appear in paropts_usage
 #     ['b']="b"
 #     ['_b_explanation_']="This does something else"
 #     ['_b_bool_']=true # is the otpion boolean (true if used, false otherwise)?

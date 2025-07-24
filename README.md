@@ -94,7 +94,7 @@ USAGE: <your-command-name> [OPTIONS]
 
 ### Function `paropts_finalize`
 
-Finalises the setup of the output. Outputs to the chosen filename a file which includes the function `parse_options` and, if chosen, `po_usage`.
+Finalises the setup of the output. Outputs to the chosen filename a file which includes the function `parse_options` and, if chosen, `paropts_usage`.
 
 **Positional arguments**
 
@@ -108,7 +108,7 @@ source "<filepath-to-output-file>"
 ```
 This output file has one or two functions:
 1. The function `parse_options`
-2. The function `po_usage`, if you have chosen to include this
+2. The function `paropts_usage`, if you have chosen to include this
 
 `parse_options` should be called like this:
 ```bash
@@ -118,7 +118,7 @@ This will give you access to all the variables which you have associated with th
 
 It will also do thorough validity-checking of your user's options.
 
-`po_usage` can be called at any point to print the usage function to the screen. It is also called if the user types:
+`paropts_usage` can be called at any point to print the usage function to the screen. It is also called if the user types:
 ```bash
 <your-command-name> --help
 ```
@@ -129,8 +129,8 @@ It will also do thorough validity-checking of your user's options.
 - If your option is required and the user doesn't input it, they are alerted and the program exits with exit code 1
 - Any invalid options will result in the code exiting with exit code 1, and will also instruct the user to type `<your-command-name> --help`
 - The user putting in an option requiring an argument, and not providing one (or providing a dashed argument which looks like an option) will also result in exiting with an error
-- The function `po_usage` will wrap according to the end user's terminal width
-- Note that, in`po_usage`, the order of the options is determined by the alphabetical order of the **variable names** to store the option in
+- The function `paropts_usage` will wrap according to the end user's terminal width
+- Note that, in`paropts_usage`, the order of the options is determined by the alphabetical order of the **variable names** to store the option in
 
 ## Example
 
@@ -146,7 +146,7 @@ paropts_add "b" "b" -e "Explanation of option b" --bool
 paropts_add "d_opt" "ddd;d" -e "Description of 'dopt'. This otpion uses 'ARG2'. This is a long explanation" -r -n "ARG2"
 
 
-# This will make sure to include a usage function (po_usage)
+# This will make sure to include a usage function (paropts_usage)
 paropts_setup "<your-command-name>" -u -d "Description of program"
 
 # Finalise setup, and pass the full file path of where you want the output printed
