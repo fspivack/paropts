@@ -20,15 +20,15 @@
 
 _checkargs() {
     # Check arguments to this script, for options requiring an argument
-    found=false
+    #
+    # Note: Originally had "found" flag. Unnecessary because if not found, exit
+    # with error
     if [[ -z "$2" ]]; then
         printf "ERROR: Option %s requires an argument\n" "$1" >&2
         exit 1
     elif [[ "$2" =~ ^- ]]; then
         printf "ERROR: Option %s requires an argument; got option %s instead\n" "$1" "$2" >&2
         exit 1
-    else
-        found=true
     fi
 }
 
@@ -425,27 +425,21 @@ paropts_add() {
                     ;;
                 -d|--default)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        default="$2"
-                        shift
-                        shift
-                    fi
+                    default="$2"
+                    shift
+                    shift
                     ;;
                 -e|--explanation)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        explanation="$2"
-                        shift
-                        shift
-                    fi
+                    explanation="$2"
+                    shift
+                    shift
                     ;;
                 -n|--name-arg)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        name_arg="$2"
-                        shift
-                        shift
-                    fi
+                    name_arg="$2"
+                    shift
+                    shift
                     ;;
                 -r|--required)
                     required=true
@@ -530,35 +524,27 @@ paropts_setup() {
             case "$1" in
                 -a|--after)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        data_arr["_post_message_"]="$2"
-                        shift
-                        shift
-                    fi
+                    data_arr["_post_message_"]="$2"
+                    shift
+                    shift
                     ;;
                 -b|--before)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        data_arr["_pre_message_"]="$2"
-                        shift
-                        shift
-                    fi
+                    data_arr["_pre_message_"]="$2"
+                    shift
+                    shift
                     ;;
                 -d|--description)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        data_arr["_description_"]="$2"
-                        shift
-                        shift
-                    fi
+                    data_arr["_description_"]="$2"
+                    shift
+                    shift
                     ;;
                 --ul|--usage-line)
                     _checkargs "$1" "$2"
-                    if [[ "$found" == true ]]; then
-                        data_arr["_usage_line_"]="$2"
-                        shift
-                        shift
-                    fi
+                    data_arr["_usage_line_"]="$2"
+                    shift
+                    shift
                     ;;
                 -u|--usage)
                     data_arr["_has_usage_"]=true
