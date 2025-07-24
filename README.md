@@ -1,6 +1,6 @@
-# Paropts – A Bash Option Parser for Linux Scripts
+# Paropts – A Bash Option Parser for Shell Scripts
 
-A Bash tool for parsing command line options in shell scripts, including an optional neatly-formatted help/usage function.
+A Bash tool for parsing command line options in Linux shell scripts, including an optional neatly-formatted help/usage function.
 
 ## Usage
 
