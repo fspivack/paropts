@@ -146,7 +146,6 @@ $help_option
                 *)
                     printf \"ERROR: Incorrect option %s\n\" \"\$1\" >&2
 
-                #### [ if user wants help function ]
 $help_suggestion
 
                     exit 1
@@ -163,7 +162,6 @@ $help_suggestion
         shift
     done
 
-    #### End bit goes here (handling required options which have not been passed)
 $handle_required
 
 }
@@ -283,7 +281,7 @@ _paropts_add_all() {
             fi
             opt_vals=(${data[$opt_name]}) # remember we split this before
             opt_val1="${opt_vals[0]}"
-            # Clear frm previous use
+            # Clear from previous use
             unset short
             unset long
             if [ -v opt_vals[1] ]; then
