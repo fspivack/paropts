@@ -224,9 +224,9 @@ _set_usage_function() {
 paropts_usage() {
 
     # Get terminal width
-    # terminal=\$(tty)
-    # columns=\$(stty -a <\"\$terminal\" | grep -Po '(?<=columns )\d+')
-    columns=\$(stty size | awk '{print \$2}')
+    columns=\${PAROPTS_TEST_COLUMNS:-\$(stty size 2>/dev/null | awk '{print \$2}')}
+    : \"\${columns:=80}\"  # fallback in case stty fails silently
+
     padding=$padding
 
     printf \"$4\\n\"
