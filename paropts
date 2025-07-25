@@ -20,7 +20,7 @@
 
 _checkargs() {
     # Check arguments to this script, for options requiring an argument
-    #
+
     # Note: Originally had "found" flag. Unnecessary because if not found, exit
     # with error
     if [[ -z "$2" ]]; then
@@ -49,7 +49,7 @@ _requires_arg_string() {
     # Prints the argument-checking code for the parse_options function output
     #
     # $1 is the variable name associated with the option
-    #
+
     # If not bool, object if user uses option but doesn't supply arg
     printf "
                     if [[ -z \"\$2\" ]]; then
@@ -107,7 +107,7 @@ _handle_required_string() {
 
 _parse_func_string() {
     # Prints the final code for parse_options output
-    #
+
     # Rename variables for clarity
     defaults="$1"
     options_list="$2"
@@ -185,7 +185,7 @@ _usage_print_string() {
     # $2 is comma (empty or a comma)
     # $3 is long (as in long option - may not have one)
     # $4 is argname for output
-    #
+
     # %-20s reserves 20 characters for the option fields, left-aligned
     # Note that, if there's no short or no long, they just won't be printed
     printf "
@@ -243,6 +243,9 @@ $6
 }
 
 _paropts_add_all() {
+    # Add all options and prepare the function 'parse_options', and if required
+    # the function 'paropts_usage', for output
+    
     # Note: Options will be sorted alphabetically according to their names, not
     # the actual options
 
@@ -408,6 +411,8 @@ _paropts_add_all() {
 # script if they want more than one output file
 declare -A data_arr=()
 paropts_add() {
+    # Add data for one particular option
+    
     # Initialise positional array
     positional=()
     required=false
@@ -514,6 +519,8 @@ paropts_add() {
 }
 
 paropts_setup() {
+    # Set up for the usage function
+    
     positional=()
     data_arr["_has_usage_"]=false
     data_arr["_post_message_"]=""
@@ -577,7 +584,9 @@ paropts_setup() {
 }
 
 paropts_finalize() {
-    # Set up file to write to
+    # Finalize the output and write to the specified file
+    
+    # Get file to write to
     if [[ ! "$#" -eq 0 ]]; then
         options_filename="$1"
     else
