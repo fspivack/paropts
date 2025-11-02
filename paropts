@@ -113,6 +113,7 @@ _parse_func_string() {
     options_list="$2"
     handle_required="$3"
     include_help="$4"
+    cmd_name="$5"
     help_option=""
     help_suggestion=""
     if [[ "$include_help" == true ]]; then
@@ -122,7 +123,7 @@ _parse_func_string() {
                     break
                     ;;"
         help_suggestion="
-                    printf \"Type 'paropts-test --help' for usage\\n\" >&2"
+                    printf \"Type '$cmd_name --help' for usage\\n\" >&2"
     fi
     parse_func="#!/bin/bash
 
@@ -361,7 +362,7 @@ _paropts_add_all() {
             fi
         fi
     done
-    _parse_func_string "$defaults" "$options_content" "$handle_required" "${data[_has_usage_]}"
+    _parse_func_string "$defaults" "$options_content" "$handle_required" "${data[_has_usage_]}" "${data[_cmd_name_]}"
     args=(
         "${data["_cmd_name_"]}"
         "${data["_description_"]}"
