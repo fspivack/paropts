@@ -362,8 +362,17 @@ _paropts_add_all() {
             fi
         fi
     done
-    _parse_func_string "$defaults" "$options_content" "$handle_required" "${data[_has_usage_]}" "${data[_cmd_name_]}"
-    args=(
+    # These args were originally passed directly, but the list became too long
+    parse_args=(
+        "$defaults"
+        "$options_content"
+        "$handle_required"
+        "${data[_has_usage_]}"
+        "${data[_cmd_name_]}"
+    )
+    ## _parse_func_string "$defaults" "$options_content" "$handle_required" "${data[_has_usage_]}" "${data[_cmd_name_]}"
+    _parse_func_string "${parse_args[@]}"
+    help_args=(
         "${data["_cmd_name_"]}"
         "${data["_description_"]}"
         "${data["_usage_line_"]}"
@@ -373,7 +382,7 @@ _paropts_add_all() {
     )
     # If user wants usage function...
     if [[ "${data[_has_usage_]}" == "true" ]]; then
-       _set_usage_function "${args[@]}"
+       _set_usage_function "${help_args[@]}"
     fi
 }
 
