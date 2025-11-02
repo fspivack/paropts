@@ -235,7 +235,7 @@ paropts_usage() {
     printf \"$2\\n\\n\"
     printf \"Options\\n\"
 $6
-    printf \"$5\\n\"
+    printf \"\\n$5\\n\"
     # Clean exit
     exit 0
 }
@@ -269,7 +269,14 @@ _paropts_add_all() {
     done
     IFS=$'\n' sorted_keys=($(sort <<<"${keys[*]}"))
     unset IFS
-        
+
+    # Moved this to here, so we're not recalculating it every time
+    shortlen=6
+    longlen=20
+    (( reserved = shortlen + longlen ))
+    # The "+ 4" is becasue of the added space characters in the printf
+    (( padding = reserved + 4 ))
+
     for opt_name in "${sorted_keys[@]}"; do  # loop through keys in assoc array
 
         # If option doesn't start and end '_' ...
@@ -324,11 +331,11 @@ _paropts_add_all() {
             else
                 argname=""
             fi
-            shortlen=6
-            longlen=20
-            (( reserved = shortlen + longlen ))
-            # The "+ 4" is becasue of the added space characters in the printf
-            (( padding = reserved + 4 ))
+            # shortlen=6
+            # longlen=20
+            # (( reserved = shortlen + longlen ))
+            # # The "+ 4" is becasue of the added space characters in the printf
+            # (( padding = reserved + 4 ))
             optlength="${#long}"
             arglength="${#argname}"
             (( numchars = optlength + shortlen + arglength ))
@@ -339,11 +346,11 @@ _paropts_add_all() {
             else
                 usage_content+="$(_usage_print_string "$short" "$comma" "$long" "$argname")"
             fi
-            options_content+="$(_option_setup_string $short $long)"
+            options_content+="$(_option_setup_string $short $long)"  ## todo
             bool=true
             if [[ "${data[_${opt_name}_bool_]}" == "false" ]]; then
                 # Option does not have the bool flag - requires argument
-                options_content+="$(_requires_arg_string "$opt_name")"
+                options_content+="$(_requires_arg_string "$opt_name")"  ## todo
                 if [[ -v data[_${opt_name}_default_] ]]; then
                     option_default_value="${data["_${opt_name}_default_"]}"
                     defaults+="$(_default_string "$opt_name" false "$option_default_value")"
@@ -362,6 +369,22 @@ _paropts_add_all() {
             fi
         fi
     done
+    # Add the option --help to the usage content
+    help_exp="Display this help text and exit"
+    usage_content+="$(_usage_wrap_string "$help_exp")"
+    unset short
+    long="--help"
+    optlength="${#long}"
+    (( numchars = optlength + shortlen ))
+    # This is definitely unnecessary (numchars will not be greater than
+    # reserved), but including it for completeness
+    if [[ "$numchars" -gt "$reserved" ]]; then
+        # Too long — print on one line, wrap description
+        usage_content+="$(_usage_print_long_string "" "" "$long" "")"
+    else
+        usage_content+="$(_usage_print_string "" "" "$long" "")"
+    fi
+    
     # These args were originally passed directly, but the list became too long
     parse_args=(
         "$defaults"
